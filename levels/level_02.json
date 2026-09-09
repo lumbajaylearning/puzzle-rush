@@ -1,0 +1,105 @@
+{
+  "width": 4,
+  "height": 4,
+  "arrows": [
+    {
+      "id": 0,
+      "cells": [
+        [
+          3,
+          1
+        ]
+      ],
+      "direction": "down",
+      "color": 1
+    },
+    {
+      "id": 1,
+      "cells": [
+        [
+          2,
+          1
+        ]
+      ],
+      "direction": "left",
+      "color": 3
+    },
+    {
+      "id": 2,
+      "cells": [
+        [
+          1,
+          1
+        ]
+      ],
+      "direction": "up",
+      "color": 2
+    },
+    {
+      "id": 3,
+      "cells": [
+        [
+          3,
+          3
+        ]
+      ],
+      "direction": "left",
+      "color": 0
+    },
+    {
+      "id": 4,
+      "cells": [
+        [
+          2,
+          0
+        ]
+      ],
+      "direction": "right",
+      "color": 3
+    },
+    {
+      "id": 5,
+      "cells": [
+        [
+          0,
+          0
+        ]
+      ],
+      "direction": "down",
+      "color": 0
+    },
+    {
+      "id": 6,
+      "cells": [
+        [
+          0,
+          3
+        ]
+      ],
+      "direction": "left",
+      "color": 3
+    }
+  ],
+  "seed": 2014,
+  "solution": [
+    6,
+    5,
+    4,
+    3,
+    2,
+    1,
+    0
+  ],
+  "id": 2,
+  "title": "Open water",
+  "chapter": "Drift",
+  "hint": "An arrow escapes only when its entire path is clear.",
+  "difficulty": {
+    "solvable": true,
+    "arrows": 7,
+    "initial_choices": 3,
+    "dependency_layers": 3,
+    "forced_layers": 1,
+    "score": 21
+  }
+}

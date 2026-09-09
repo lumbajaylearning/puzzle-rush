@@ -1,0 +1,76 @@
+{
+  "id": 1,
+  "title": "First light",
+  "chapter": "Drift",
+  "width": 4,
+  "height": 4,
+  "hint": "Tap the right arrow first. Clear a path for the others.",
+  "arrows": [
+    {
+      "id": 0,
+      "cells": [
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "direction": "up",
+      "color": 0
+    },
+    {
+      "id": 1,
+      "cells": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "direction": "right",
+      "color": 1
+    },
+    {
+      "id": 2,
+      "cells": [
+        [
+          2,
+          2
+        ]
+      ],
+      "direction": "left",
+      "color": 2
+    },
+    {
+      "id": 3,
+      "cells": [
+        [
+          2,
+          3
+        ]
+      ],
+      "direction": "up",
+      "color": 3
+    }
+  ],
+  "solution": [
+    1,
+    0,
+    2,
+    3
+  ],
+  "difficulty": {
+    "solvable": true,
+    "arrows": 4,
+    "initial_choices": 1,
+    "dependency_layers": 4,
+    "forced_layers": 4,
+    "score": 31
+  }
+}

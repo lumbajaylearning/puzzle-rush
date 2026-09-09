@@ -1,0 +1,377 @@
+{
+  "width": 6,
+  "height": 7,
+  "arrows": [
+    {
+      "id": 0,
+      "cells": [
+        [
+          5,
+          5
+        ]
+      ],
+      "direction": "down",
+      "color": 1
+    },
+    {
+      "id": 1,
+      "cells": [
+        [
+          3,
+          6
+        ]
+      ],
+      "direction": "right",
+      "color": 1
+    },
+    {
+      "id": 2,
+      "cells": [
+        [
+          0,
+          5
+        ]
+      ],
+      "direction": "left",
+      "color": 3
+    },
+    {
+      "id": 3,
+      "cells": [
+        [
+          2,
+          3
+        ]
+      ],
+      "direction": "left",
+      "color": 0
+    },
+    {
+      "id": 4,
+      "cells": [
+        [
+          2,
+          6
+        ]
+      ],
+      "direction": "down",
+      "color": 0
+    },
+    {
+      "id": 5,
+      "cells": [
+        [
+          3,
+          4
+        ],
+        [
+          2,
+          4
+        ]
+      ],
+      "direction": "left",
+      "color": 2
+    },
+    {
+      "id": 6,
+      "cells": [
+        [
+          3,
+          0
+        ]
+      ],
+      "direction": "left",
+      "color": 3
+    },
+    {
+      "id": 7,
+      "cells": [
+        [
+          4,
+          2
+        ]
+      ],
+      "direction": "down",
+      "color": 3
+    },
+    {
+      "id": 8,
+      "cells": [
+        [
+          5,
+          2
+        ]
+      ],
+      "direction": "right",
+      "color": 1
+    },
+    {
+      "id": 9,
+      "cells": [
+        [
+          0,
+          4
+        ]
+      ],
+      "direction": "up",
+      "color": 1
+    },
+    {
+      "id": 10,
+      "cells": [
+        [
+          1,
+          4
+        ]
+      ],
+      "direction": "down",
+      "color": 2
+    },
+    {
+      "id": 11,
+      "cells": [
+        [
+          4,
+          6
+        ]
+      ],
+      "direction": "down",
+      "color": 2
+    },
+    {
+      "id": 12,
+      "cells": [
+        [
+          2,
+          0
+        ]
+      ],
+      "direction": "left",
+      "color": 0
+    },
+    {
+      "id": 13,
+      "cells": [
+        [
+          0,
+          1
+        ]
+      ],
+      "direction": "right",
+      "color": 0
+    },
+    {
+      "id": 14,
+      "cells": [
+        [
+          1,
+          1
+        ]
+      ],
+      "direction": "up",
+      "color": 2
+    },
+    {
+      "id": 15,
+      "cells": [
+        [
+          0,
+          0
+        ]
+      ],
+      "direction": "up",
+      "color": 2
+    },
+    {
+      "id": 16,
+      "cells": [
+        [
+          1,
+          0
+        ]
+      ],
+      "direction": "up",
+      "color": 1
+    },
+    {
+      "id": 17,
+      "cells": [
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ]
+      ],
+      "direction": "right",
+      "color": 1
+    },
+    {
+      "id": 18,
+      "cells": [
+        [
+          4,
+          1
+        ]
+      ],
+      "direction": "up",
+      "color": 1
+    },
+    {
+      "id": 19,
+      "cells": [
+        [
+          1,
+          6
+        ]
+      ],
+      "direction": "left",
+      "color": 2
+    },
+    {
+      "id": 20,
+      "cells": [
+        [
+          0,
+          3
+        ]
+      ],
+      "direction": "left",
+      "color": 0
+    },
+    {
+      "id": 21,
+      "cells": [
+        [
+          4,
+          0
+        ]
+      ],
+      "direction": "right",
+      "color": 3
+    },
+    {
+      "id": 22,
+      "cells": [
+        [
+          5,
+          1
+        ]
+      ],
+      "direction": "right",
+      "color": 3
+    },
+    {
+      "id": 23,
+      "cells": [
+        [
+          0,
+          6
+        ]
+      ],
+      "direction": "left",
+      "color": 2
+    },
+    {
+      "id": 24,
+      "cells": [
+        [
+          2,
+          2
+        ]
+      ],
+      "direction": "left",
+      "color": 2
+    },
+    {
+      "id": 25,
+      "cells": [
+        [
+          0,
+          2
+        ]
+      ],
+      "direction": "left",
+      "color": 2
+    },
+    {
+      "id": 26,
+      "cells": [
+        [
+          4,
+          4
+        ]
+      ],
+      "direction": "right",
+      "color": 0
+    },
+    {
+      "id": 27,
+      "cells": [
+        [
+          5,
+          3
+        ]
+      ],
+      "direction": "right",
+      "color": 2
+    },
+    {
+      "id": 28,
+      "cells": [
+        [
+          5,
+          0
+        ]
+      ],
+      "direction": "up",
+      "color": 0
+    }
+  ],
+  "seed": 24014,
+  "solution": [
+    28,
+    27,
+    26,
+    25,
+    24,
+    23,
+    22,
+    21,
+    20,
+    19,
+    18,
+    17,
+    16,
+    15,
+    14,
+    13,
+    12,
+    11,
+    10,
+    9,
+    8,
+    7,
+    6,
+    5,
+    4,
+    3,
+    2,
+    1,
+    0
+  ],
+  "id": 24,
+  "title": "In the zone",
+  "chapter": "Surge",
+  "hint": "",
+  "difficulty": {
+    "solvable": true,
+    "arrows": 29,
+    "initial_choices": 14,
+    "dependency_layers": 7,
+    "forced_layers": 4,
+    "score": 58
+  }
+}

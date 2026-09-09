@@ -1,0 +1,129 @@
+{
+  "width": 4,
+  "height": 4,
+  "arrows": [
+    {
+      "id": 0,
+      "cells": [
+        [
+          0,
+          2
+        ]
+      ],
+      "direction": "up",
+      "color": 0
+    },
+    {
+      "id": 1,
+      "cells": [
+        [
+          1,
+          2
+        ]
+      ],
+      "direction": "down",
+      "color": 3
+    },
+    {
+      "id": 2,
+      "cells": [
+        [
+          3,
+          1
+        ]
+      ],
+      "direction": "up",
+      "color": 3
+    },
+    {
+      "id": 3,
+      "cells": [
+        [
+          0,
+          3
+        ]
+      ],
+      "direction": "right",
+      "color": 3
+    },
+    {
+      "id": 4,
+      "cells": [
+        [
+          2,
+          3
+        ]
+      ],
+      "direction": "up",
+      "color": 3
+    },
+    {
+      "id": 5,
+      "cells": [
+        [
+          0,
+          1
+        ]
+      ],
+      "direction": "left",
+      "color": 0
+    },
+    {
+      "id": 6,
+      "cells": [
+        [
+          2,
+          2
+        ]
+      ],
+      "direction": "up",
+      "color": 2
+    },
+    {
+      "id": 7,
+      "cells": [
+        [
+          3,
+          2
+        ]
+      ],
+      "direction": "right",
+      "color": 1
+    },
+    {
+      "id": 8,
+      "cells": [
+        [
+          2,
+          0
+        ]
+      ],
+      "direction": "right",
+      "color": 1
+    }
+  ],
+  "seed": 4002,
+  "solution": [
+    8,
+    7,
+    6,
+    5,
+    4,
+    3,
+    2,
+    1,
+    0
+  ],
+  "id": 4,
+  "title": "Find your flow",
+  "chapter": "Drift",
+  "hint": "Three stars: clear the board without a blocked tap.",
+  "difficulty": {
+    "solvable": true,
+    "arrows": 9,
+    "initial_choices": 5,
+    "dependency_layers": 4,
+    "forced_layers": 2,
+    "score": 28
+  }
+}
