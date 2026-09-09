@@ -38,6 +38,9 @@ jobs:
           templates="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
           mkdir -p "$templates"
           unzip -j -q "Godot_v${GODOT_VERSION}-stable_export_templates.tpz" 'templates/android_debug.apk' 'templates/android_release.apk' -d "$templates"
+      - uses: android-actions/setup-android@v4.0.1
+        with:
+          log-accepted-android-sdk-licenses: false
       - name: Configure Android SDK and a disposable debug key
         shell: bash
         run: |
