@@ -39,7 +39,7 @@ def main():
             env["APPDATA"] = directory
             if sys.platform == "darwin":
                 raise SystemExit("Use Linux/Windows for isolated save tests; macOS uses a different app-data path.")
-            run([binary, "--headless", "--audio-driver", "Dummy", "--path", str(ROOT), "--script", f"tests/test_{suite}.gd"], env)
+            run([binary, "--headless", "--audio-driver", "Dummy", "--path", str(ROOT), *(["--verbose"] if suite == "app" else []), "--script", f"tests/test_{suite}.gd"], env)
     print("PASS: all real Godot suites")
 
 
