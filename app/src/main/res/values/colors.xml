@@ -1,0 +1,7 @@
+<resources>
+    <color name="purple_primary">#6750A4</color>
+    <color name="purple_accent">#7D5260</color>
+    <color name="bg_dark">#0F172A</color>
+    <color name="ic_launcher_bg_start">#1E1B4B</color>
+    <color name="ic_launcher_bg_end">#4338CA</color>
+</resources>

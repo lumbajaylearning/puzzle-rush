@@ -1,0 +1,6 @@
+{
+  "name": "Puzzle Rush",
+  "description": "Arrow puzzle game featuring 30 handcrafted levels of directional untangling, fast-paced rush mode, and smooth animations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
