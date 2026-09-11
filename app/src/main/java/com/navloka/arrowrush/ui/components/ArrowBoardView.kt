@@ -11,8 +11,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.aspectRatio
@@ -22,11 +21,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -37,6 +36,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -64,6 +67,7 @@ fun ArrowBoardView(
     modifier: Modifier = Modifier
 ) {
     val colors = LocalGameColors.current
+    val currentOnArrowClick by rememberUpdatedState(onArrowClick)
     val infiniteTransition = rememberInfiniteTransition(label = "boardPulse")
     val pulse by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -91,7 +95,26 @@ fun ArrowBoardView(
         val cellWidthPx = boardWidthPx / cols
         val cellHeightPx = boardHeightPx / rows
 
-        Canvas(modifier = Modifier.fillMaxSize()) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(activeArrows, flyingArrowIds, rows, cols) {
+                    // Restarting this pointer handler when fly-off begins cancels any queued
+                    // gesture. Moving arrow visuals never own touch regions.
+                    if (flyingArrowIds.isEmpty()) {
+                        detectTapGestures { tapPosition ->
+                            findArrowAtBoardPosition(
+                                position = tapPosition,
+                                activeArrows = activeArrows,
+                                rows = rows,
+                                cols = cols,
+                                boardWidth = boardWidthPx,
+                                boardHeight = boardHeightPx
+                            )?.let(currentOnArrowClick)
+                        }
+                    }
+                }
+        ) {
             // Quiet registration dots show spatial relationships without a heavy grid.
             for (row in 0 until rows) {
                 for (col in 0 until cols) {
@@ -153,7 +176,7 @@ fun ArrowBoardView(
                 isBlocker = arrow.id == blockerArrowId,
                 isHinted = arrow.id == hintArrowId,
                 pulse = pulse,
-                onClick = { onArrowClick(arrow.id) }
+                onActivate = { onArrowClick(arrow.id) }
             )
         }
     }
@@ -161,6 +184,24 @@ fun ArrowBoardView(
 
 private fun arrowCenter(arrow: Arrow, cellWidth: Float, cellHeight: Float): Offset =
     Offset((arrow.col + 0.5f) * cellWidth, (arrow.row + 0.5f) * cellHeight)
+
+internal fun findArrowAtBoardPosition(
+    position: Offset,
+    activeArrows: Map<Int, Arrow>,
+    rows: Int,
+    cols: Int,
+    boardWidth: Float,
+    boardHeight: Float
+): Int? {
+    if (rows <= 0 || cols <= 0 || boardWidth <= 0f || boardHeight <= 0f) return null
+    if (position.x < 0f || position.x >= boardWidth || position.y < 0f || position.y >= boardHeight) {
+        return null
+    }
+
+    val row = (position.y / (boardHeight / rows)).toInt()
+    val col = (position.x / (boardWidth / cols)).toInt()
+    return activeArrows.values.firstOrNull { it.row == row && it.col == col }?.id
+}
 
 internal fun boardCellOffset(
     row: Int,
@@ -196,7 +237,7 @@ private fun ArrowCellItem(
     isBlocker: Boolean,
     isHinted: Boolean,
     pulse: Float,
-    onClick: () -> Unit
+    onActivate: () -> Unit
 ) {
     val colors = LocalGameColors.current
     val density = LocalDensity.current
@@ -273,11 +314,13 @@ private fun ArrowCellItem(
             .alpha(flyAlpha.value)
             .scale(if (isHinted) 1f + pulse * 0.08f else 1f)
             .clip(CircleShape)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple(bounded = false, color = colors.accent),
-                onClick = onClick
-            )
+            .semantics {
+                contentDescription = "Arrow pointing ${arrow.direction.label}"
+                onClick {
+                    if (!isFlying) onActivate()
+                    !isFlying
+                }
+            }
             .testTag("arrow_${arrow.id}"),
         contentAlignment = Alignment.Center
     ) {
