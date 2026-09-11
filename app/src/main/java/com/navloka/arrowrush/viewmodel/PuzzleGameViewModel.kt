@@ -39,7 +39,7 @@ class PuzzleGameViewModel @JvmOverloads constructor(
         try {
             AppThemeMode.valueOf(prefs.currentTheme)
         } catch (_: Exception) {
-            AppThemeMode.CYBER
+            AppThemeMode.ZEN
         }
     )
     val themeMode: StateFlow<AppThemeMode> = _themeMode.asStateFlow()
@@ -57,6 +57,7 @@ class PuzzleGameViewModel @JvmOverloads constructor(
     private var rushTimerJob: Job? = null
     private var blockerClearJob: Job? = null
     private var hintClearJob: Job? = null
+    private var moveAnimationJob: Job? = null
 
     init {
         engine.feedbackListener = object : MovementFeedbackListener {
@@ -102,6 +103,7 @@ class PuzzleGameViewModel @JvmOverloads constructor(
         rushTimerJob?.cancel()
         hintClearJob?.cancel()
         blockerClearJob?.cancel()
+        moveAnimationJob?.cancel()
         val lvl = LevelCatalog.getLevel(levelNumber)
         engine.loadLevel(lvl)
 
@@ -132,6 +134,7 @@ class PuzzleGameViewModel @JvmOverloads constructor(
         rushTimerJob?.cancel()
         hintClearJob?.cancel()
         blockerClearJob?.cancel()
+        moveAnimationJob?.cancel()
         val firstRushLvl = LevelCatalog.getLevel(1)
         engine.loadLevel(firstRushLvl)
 
@@ -203,7 +206,10 @@ class PuzzleGameViewModel @JvmOverloads constructor(
     fun onArrowClicked(arrowId: Int) {
         val state = _gameState.value
         if (state.isCleared || state.isRushGameOver) return
-        if (state.flyingArrowIds.contains(arrowId)) return
+        // The engine removes a successful arrow immediately while the UI keeps it for the
+        // 220 ms fly-off animation. Lock the board during that tiny window so a second tap
+        // cannot be evaluated against an engine state the player has not seen yet.
+        if (state.flyingArrowIds.isNotEmpty()) return
 
         engine.move(arrowId)
     }
@@ -263,7 +269,8 @@ class PuzzleGameViewModel @JvmOverloads constructor(
             )
         }
 
-        viewModelScope.launch {
+        moveAnimationJob?.cancel()
+        moveAnimationJob = viewModelScope.launch {
             delay(220) // Duration of arrow fly-off
             val current = _gameState.value
             val updatedBoard = engine.getBoardState()
@@ -413,6 +420,7 @@ class PuzzleGameViewModel @JvmOverloads constructor(
         haptics.vibrateClick()
         hintClearJob?.cancel()
         blockerClearJob?.cancel()
+        moveAnimationJob?.cancel()
         if (_gameState.value.mode == GameMode.RUSH) {
             startRushMode()
         } else {

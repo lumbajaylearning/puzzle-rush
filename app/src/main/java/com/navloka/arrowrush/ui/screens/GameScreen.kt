@@ -120,13 +120,10 @@ fun GameScreen(
             // Controls
             ControlBar(
                 gameState = gameState,
-                soundEnabled = viewModel.prefs.soundEnabled,
-                hapticsEnabled = viewModel.prefs.hapticsEnabled,
                 onUndoClick = { viewModel.undoLastMove() },
                 onHintClick = { viewModel.requestHint() },
                 onRestartClick = { viewModel.restartCurrentLevel() },
-                onToggleSound = { viewModel.toggleSound() },
-                onToggleHaptics = { viewModel.toggleHaptics() }
+                modifier = Modifier.padding(bottom = 12.dp)
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -192,8 +189,8 @@ private fun FeedbackBanner(
                 else -> gameColors.accent.copy(alpha = 0.6f)
             }
             val bannerTextColor = when {
-                isError -> Color(0xFFFCA5A5)
-                isHint -> Color(0xFFFDE047)
+                isError -> gameColors.blockerHighlight
+                isHint -> gameColors.hintGlow
                 else -> gameColors.textPrimary
             }
 

@@ -46,7 +46,7 @@ class GamePreferences(context: Context) {
         set(value) = prefs.edit().putInt(KEY_RUSH_ARROWS_CLEARED, value).apply()
 
     var currentTheme: String
-        get() = prefs.getString(KEY_CURRENT_THEME, "CYBER") ?: "CYBER"
+        get() = prefs.getString(KEY_CURRENT_THEME, "ZEN") ?: "ZEN"
         set(value) = prefs.edit().putString(KEY_CURRENT_THEME, value).apply()
 
     var soundEnabled: Boolean

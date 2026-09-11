@@ -48,21 +48,21 @@ val CyberColors = GameThemeColors(
 )
 
 val ZenColors = GameThemeColors(
-    background = Color(0xFFF7F4EB),
-    surface = Color(0xFFEBE6D8),
-    surfaceVariant = Color(0xFFDDD7C6),
-    boardBackground = Color(0xFFE4DEC9),
-    gridLine = Color(0x26000000),
-    textPrimary = Color(0xFF1F2421),
-    textSecondary = Color(0xFF5A635B),
-    accent = Color(0xFF2E6F54),
+    background = Color(0xFFF7F5EF),
+    surface = Color(0xFFFFFFFF),
+    surfaceVariant = Color(0xFFECE8DE),
+    boardBackground = Color(0xFFE3DED2),
+    gridLine = Color(0x33211F1A),
+    textPrimary = Color(0xFF201F1B),
+    textSecondary = Color(0xFF6D685E),
+    accent = Color(0xFFE85D3F),
     arrowColors = listOf(
         Color(0xFF2E6F54), // Forest green
         Color(0xFFC45A3C), // Terracotta
         Color(0xFF2C5D77), // Slate Blue
         Color(0xFF9E6B28)  // Ochre
     ),
-    arrowBorder = Color(0x33000000),
+    arrowBorder = Color(0x26201F1B),
     blockerHighlight = Color(0xFFDC2626),
     hintGlow = Color(0xFFD97706),
     starActive = Color(0xFFD97706),

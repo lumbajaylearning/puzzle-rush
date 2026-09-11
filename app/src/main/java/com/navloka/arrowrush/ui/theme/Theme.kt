@@ -7,11 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 
-val LocalGameColors = staticCompositionLocalOf { CyberColors }
+val LocalGameColors = staticCompositionLocalOf { ZenColors }
 
 @Composable
 fun ArrowRushTheme(
-    themeMode: AppThemeMode = AppThemeMode.CYBER,
+    themeMode: AppThemeMode = AppThemeMode.ZEN,
     content: @Composable () -> Unit
 ) {
     val gameColors = when (themeMode) {
