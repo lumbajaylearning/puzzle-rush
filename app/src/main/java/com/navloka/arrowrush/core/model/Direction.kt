@@ -1,10 +1,12 @@
 package com.navloka.arrowrush.core.model
 
 enum class Direction(val dRow: Int, val dCol: Int, val angleDegrees: Float) {
-    UP(-1, 0, 0f),
-    RIGHT(0, 1, 90f),
-    DOWN(1, 0, 180f),
-    LEFT(0, -1, 270f);
+    // ArrowBoardView draws its base arrow facing right. Keep visual rotation and movement
+    // deltas together here so the arrow always flies in the direction it points.
+    UP(-1, 0, -90f),
+    RIGHT(0, 1, 0f),
+    DOWN(1, 0, 90f),
+    LEFT(0, -1, 180f);
 
     val label: String
         get() = when (this) {
