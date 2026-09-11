@@ -3,6 +3,7 @@ package com.navloka.arrowrush
 import androidx.compose.ui.geometry.Offset
 import com.navloka.arrowrush.core.model.Arrow
 import com.navloka.arrowrush.core.model.Direction
+import com.navloka.arrowrush.core.model.Position
 import com.navloka.arrowrush.ui.components.findArrowAtBoardPosition
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -37,12 +38,32 @@ class BoardHitTestTest {
         assertNull(arrowAt(Offset(25f, 100f)))
     }
 
-    private fun arrowAt(position: Offset, board: Map<Int, Arrow> = arrows): Int? =
+    @Test
+    fun `every occupied cell of a bent path selects the same arrow`() {
+        val bent = Arrow(
+            id = 5,
+            path = listOf(Position(2, 0), Position(1, 0), Position(1, 1)),
+            direction = Direction.RIGHT
+        )
+        val board = mapOf(5 to bent)
+
+        assertEquals(5, arrowAt(Offset(16f, 83f), board, rows = 3, cols = 3))
+        assertEquals(5, arrowAt(Offset(16f, 50f), board, rows = 3, cols = 3))
+        assertEquals(5, arrowAt(Offset(50f, 50f), board, rows = 3, cols = 3))
+        assertNull(arrowAt(Offset(83f, 16f), board, rows = 3, cols = 3))
+    }
+
+    private fun arrowAt(
+        position: Offset,
+        board: Map<Int, Arrow> = arrows,
+        rows: Int = 2,
+        cols: Int = 2
+    ): Int? =
         findArrowAtBoardPosition(
             position = position,
             activeArrows = board,
-            rows = 2,
-            cols = 2,
+            rows = rows,
+            cols = cols,
             boardWidth = 100f,
             boardHeight = 100f
         )

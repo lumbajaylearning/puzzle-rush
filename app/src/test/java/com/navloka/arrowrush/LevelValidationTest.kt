@@ -29,27 +29,30 @@ class LevelValidationTest {
         // 1. START STATE VALIDATION
         assertEquals("Level 1 number should be 1", 1, level1.levelNumber)
         assertEquals("Level 1 title is 'First Flight'", "First Flight", level1.title)
-        assertEquals("Level 1 grid rows should be 3", 3, level1.rows)
-        assertEquals("Level 1 grid cols should be 3", 3, level1.cols)
-        assertEquals("Level 1 should start with exactly 3 arrows", 3, level1.arrows.size)
+        assertEquals("Level 1 grid rows should be 7", 7, level1.rows)
+        assertEquals("Level 1 grid cols should be 5", 5, level1.cols)
+        assertEquals("Level 1 should start with exactly 3 paths", 3, level1.arrows.size)
 
-        // Arrow 1: row 1, col 2, direction RIGHT (front arrow nearest edge)
+        // Path 1 is the front piece nearest the top edge.
         val arrow1 = level1.arrows.find { it.id == 1 }
         assertNotNull("Arrow 1 must exist", arrow1)
-        assertEquals(Position(1, 2), arrow1!!.position)
-        assertEquals(Direction.RIGHT, arrow1.direction)
+        assertEquals(Position(0, 2), arrow1!!.position)
+        assertEquals(Direction.UP, arrow1.direction)
+        assertEquals(listOf(Position(1, 2), Position(0, 2)), arrow1.path)
 
-        // Arrow 2: row 1, col 1, direction RIGHT (middle arrow behind Arrow 1)
+        // Path 2 is blocked by Path 1 until it escapes.
         val arrow2 = level1.arrows.find { it.id == 2 }
         assertNotNull("Arrow 2 must exist", arrow2)
-        assertEquals(Position(1, 1), arrow2!!.position)
-        assertEquals(Direction.RIGHT, arrow2.direction)
+        assertEquals(Position(2, 2), arrow2!!.position)
+        assertEquals(Direction.UP, arrow2.direction)
+        assertEquals(listOf(Position(3, 2), Position(2, 2)), arrow2.path)
 
-        // Arrow 3: row 1, col 0, direction RIGHT (back arrow behind Arrow 2)
+        // Path 3 is blocked by Path 2.
         val arrow3 = level1.arrows.find { it.id == 3 }
         assertNotNull("Arrow 3 must exist", arrow3)
-        assertEquals(Position(1, 0), arrow3!!.position)
-        assertEquals(Direction.RIGHT, arrow3.direction)
+        assertEquals(Position(4, 2), arrow3!!.position)
+        assertEquals(Direction.UP, arrow3.direction)
+        assertEquals(listOf(Position(5, 2), Position(4, 2)), arrow3.path)
 
         // 2. LEVEL VALIDATOR REPORT FOR LEVEL 1
         val report = LevelValidator.validate(level1)
@@ -70,7 +73,7 @@ class LevelValidationTest {
         // In start state, ONLY Arrow 1 has a clear path out of the board
         val initialAvailable = engine.getAvailableMoves()
         assertEquals("Only Arrow 1 should be available in start state", listOf(1), initialAvailable)
-        assertTrue("Arrow 1 can escape to right edge", MovementRules.canMove(1, engine.getBoardState()))
+        assertTrue("Arrow 1 can escape through the top edge", MovementRules.canMove(1, engine.getBoardState()))
         assertNull("Arrow 1 has no blocking arrow", MovementRules.getBlockingArrow(1, engine.getBoardState()))
 
         assertFalse("Arrow 2 cannot escape in start state", MovementRules.canMove(2, engine.getBoardState()))

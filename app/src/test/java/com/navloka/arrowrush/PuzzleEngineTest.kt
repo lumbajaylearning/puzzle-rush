@@ -64,6 +64,27 @@ class PuzzleEngineTest {
     }
 
     @Test
+    fun `bent arrow collision checks the entire moving path`() {
+        val bent = Arrow(
+            id = 1,
+            path = listOf(Position(2, 0), Position(1, 0), Position(1, 1)),
+            direction = Direction.RIGHT
+        )
+        // The blocker is below the arrowhead lane, but the path tail sweeps into it.
+        val blocker = Arrow(id = 2, position = Position(2, 1), direction = Direction.DOWN)
+        val level = PuzzleLevel(1, "Whole path collision", 3, 3, listOf(bent, blocker))
+        val engine = PuzzleEngine(level)
+
+        val result = engine.move(1)
+        assertTrue(result is MoveResult.Blocked)
+        assertEquals(2, (result as MoveResult.Blocked).blockingArrow.id)
+
+        assertTrue(engine.move(2) is MoveResult.Success)
+        assertTrue(engine.move(1) is MoveResult.Success)
+        assertTrue(engine.isSolved())
+    }
+
+    @Test
     fun `clearing blocker unblocks subsequent arrow`() {
         val arrow1 = Arrow(id = 1, position = Position(0, 0), direction = Direction.RIGHT)
         val arrow2 = Arrow(id = 2, position = Position(0, 1), direction = Direction.UP)

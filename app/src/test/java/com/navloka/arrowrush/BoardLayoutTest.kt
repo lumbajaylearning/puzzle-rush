@@ -8,11 +8,11 @@ import org.junit.Test
 class BoardLayoutTest {
 
     @Test
-    fun `level 1 arrows map from the board top left without a center shift`() {
+    fun `level 1 path heads map from the board top left without a center shift`() {
         val cellSize = 100f
 
-        assertEquals(IntOffset(200, 100), boardCellOffset(1, 2, cellSize, cellSize))
-        assertEquals(IntOffset(100, 100), boardCellOffset(1, 1, cellSize, cellSize))
-        assertEquals(IntOffset(0, 100), boardCellOffset(1, 0, cellSize, cellSize))
+        assertEquals(IntOffset(200, 0), boardCellOffset(0, 2, cellSize, cellSize))
+        assertEquals(IntOffset(200, 200), boardCellOffset(2, 2, cellSize, cellSize))
+        assertEquals(IntOffset(200, 400), boardCellOffset(4, 2, cellSize, cellSize))
     }
 }

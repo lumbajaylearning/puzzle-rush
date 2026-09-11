@@ -6,18 +6,25 @@ import com.navloka.arrowrush.core.model.Position
 
 object CollisionRules {
 
-    /**
-     * Traces forward along the arrow's direction from its adjacent cell to the board edge.
-     * Returns the first Arrow encountered, or null if the path is clear out of the board.
-     */
+    /** Simulates the complete path translating one cell at a time until it leaves the board. */
     fun findBlockingArrow(arrow: Arrow, board: Board): Arrow? {
-        var current: Position = arrow.position + arrow.direction
-        while (board.isInside(current)) {
-            val obstacle = board.getArrowAt(current)
-            if (obstacle != null) {
-                return obstacle
+        var rowOffset = arrow.direction.dRow
+        var colOffset = arrow.direction.dCol
+
+        while (arrow.path.any { cell ->
+                board.isInside(cell.row + rowOffset, cell.col + colOffset)
+            }) {
+            for (cell in arrow.path) {
+                val translated = Position(cell.row + rowOffset, cell.col + colOffset)
+                if (!board.isInside(translated)) continue
+
+                val obstacle = board.getArrowAt(translated)
+                if (obstacle != null && obstacle.id != arrow.id) {
+                    return obstacle
+                }
             }
-            current += arrow.direction
+            rowOffset += arrow.direction.dRow
+            colOffset += arrow.direction.dCol
         }
         return null
     }

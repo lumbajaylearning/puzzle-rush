@@ -2,7 +2,6 @@ package com.navloka.arrowrush.core.engine
 
 import com.navloka.arrowrush.core.model.Arrow
 import com.navloka.arrowrush.core.model.Board
-import com.navloka.arrowrush.core.model.Position
 import com.navloka.arrowrush.core.model.PuzzleLevel
 
 sealed class MoveResult {
@@ -73,15 +72,7 @@ class PuzzleEngine(
      * If no arrow exists along the line of travel to the board edge, returns null (clear path to escape).
      */
     fun traceAlongDirection(arrow: Arrow): Arrow? {
-        var current: Position = arrow.position + arrow.direction
-        while (board.isInside(current)) {
-            val obstacle = board.getArrowAt(current)
-            if (obstacle != null) {
-                return obstacle
-            }
-            current = current + arrow.direction
-        }
-        return null
+        return CollisionRules.findBlockingArrow(arrow, board)
     }
 
     fun canMove(arrowId: Int): Boolean {

@@ -100,8 +100,8 @@ fun HowToPlayDialog(onDismiss: () -> Unit) {
 
                 // Rule 1: Clear Path Launches
                 DiagramRuleCard(
-                    title = "1. Clear Path = ESCAPE!",
-                    description = "Arrows only fly in the direction they point. If there are no other arrows in front of it, tapping it launches it off the board!",
+                    title = "1. One Path = One Move",
+                    description = "Each straight or bent line is one arrow. Tap anywhere on it and the whole path slides in the direction of its arrowhead.",
                     statusColor = Color(0xFF10B981)
                 ) {
                     // Mini visual demonstration
@@ -136,8 +136,8 @@ fun HowToPlayDialog(onDismiss: () -> Unit) {
 
                 // Rule 2: Blocked by Arrows Ahead
                 DiagramRuleCard(
-                    title = "2. Blocked Path = COLLISION!",
-                    description = "If another arrow sits directly in its path, the move is blocked and costs one focus heart. Three blocked taps end the run, so trace the full lane first!",
+                    title = "2. Check the Whole Shape",
+                    description = "Every part of a moving path must escape cleanly. If its head or tail would hit another path, the move is blocked and costs one focus heart.",
                     statusColor = Color(0xFFEF4444)
                 ) {
                     // Mini visual demonstration
@@ -175,7 +175,7 @@ fun HowToPlayDialog(onDismiss: () -> Unit) {
                 // Rule 3: Strategy & Tools
                 DiagramRuleCard(
                     title = "3. Strategy & Game Tools",
-                    description = "Dense boards hide dependency chains. Find any arrow with a clear lane to an edge, then use the gap it creates to unlock the next path.",
+                    description = "Look for a complete path that can slide out. Removing one long piece opens a large gap and reveals the next dependency in only a few meaningful moves.",
                     statusColor = Color(0xFFFBBF24)
                 ) {
                     Row(

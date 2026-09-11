@@ -29,7 +29,8 @@ object DifficultyEvaluator {
     fun calculateMetrics(level: PuzzleLevel): LevelMetrics {
         val boardSize = level.rows * level.cols
         val arrowCount = level.arrows.size
-        val density = if (boardSize > 0) arrowCount.toFloat() / boardSize else 0f
+        val occupiedCellCount = level.arrows.sumOf { it.path.size }
+        val density = if (boardSize > 0) occupiedCellCount.toFloat() / boardSize else 0f
 
         val board = level.createInitialBoard()
         val initialAvailable = board.arrows.values

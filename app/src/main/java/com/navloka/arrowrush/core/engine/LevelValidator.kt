@@ -64,9 +64,12 @@ class LevelValidator(private val engine: PuzzleEngine = PuzzleEngine()) {
             )
         }
 
-        // 4. Validate arrow positions within grid bounds
+        // 4. Validate every occupied path cell is within grid bounds
         for (arrow in level.arrows) {
-            if (arrow.row !in 0 until level.rows || arrow.col !in 0 until level.cols) {
+            val outOfBounds = arrow.path.firstOrNull { position ->
+                position.row !in 0 until level.rows || position.col !in 0 until level.cols
+            }
+            if (outOfBounds != null) {
                 return LevelValidationReport(
                     isValid = false,
                     levelNumber = level.levelNumber,
@@ -76,13 +79,13 @@ class LevelValidator(private val engine: PuzzleEngine = PuzzleEngine()) {
                     initialArrowCount = level.arrows.size,
                     remainingArrowCount = level.arrows.size,
                     solutionSequence = emptyList(),
-                    errorMessage = "Arrow ${arrow.id} at (${arrow.row}, ${arrow.col}) is out of bounds (0 until ${level.rows}, 0 until ${level.cols})"
+                    errorMessage = "Arrow ${arrow.id} cell $outOfBounds is out of bounds (${level.rows}x${level.cols})"
                 )
             }
         }
 
-        // 5. Validate unique arrow positions (no overlapping start positions)
-        val positions = level.arrows.map { it.position }
+        // 5. Validate unique occupied cells (paths cannot overlap)
+        val positions = level.arrows.flatMap { it.path }
         if (positions.size != positions.distinct().size) {
             val duplicates = positions.groupBy { it }.filter { it.value.size > 1 }.keys
             return LevelValidationReport(

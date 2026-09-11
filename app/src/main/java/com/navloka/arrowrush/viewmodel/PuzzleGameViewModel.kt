@@ -109,7 +109,7 @@ class PuzzleGameViewModel @JvmOverloads constructor(
         engine.loadLevel(lvl)
 
         val initialFeedback = if (levelNumber == 1) {
-            "👉 Tap the front arrow on the right edge to launch it off the board!"
+            "👉 Tap the top arrow path to launch the whole piece off the board!"
         } else null
 
         _gameState.value = GameState(
@@ -345,7 +345,7 @@ class PuzzleGameViewModel @JvmOverloads constructor(
             } else {
                 val levelFeedback = if (current.level.levelNumber == 1) {
                     when (updatedBoard.arrows.size) {
-                        2 -> "Awesome! Now tap the next front arrow pointing right."
+                        2 -> "Awesome! The gap unlocked the next upward path."
                         1 -> "Last one! Tap the final arrow to clear the level."
                         else -> null
                     }

@@ -6,11 +6,15 @@ data class Board(
     val arrows: Map<Int, Arrow>
 ) {
     val occupiedPositions: Set<Position> by lazy {
-        arrows.values.map { it.position }.toSet()
+        arrows.values.flatMap { it.path }.toSet()
     }
 
     private val positionToArrow: Map<Position, Arrow> by lazy {
-        arrows.values.associateBy { it.position }
+        buildMap {
+            arrows.values.forEach { arrow ->
+                arrow.path.forEach { position -> put(position, arrow) }
+            }
+        }
     }
 
     fun isInside(position: Position): Boolean =

@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,30 +29,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.navloka.arrowrush.core.model.Arrow
 import com.navloka.arrowrush.core.model.Direction
+import com.navloka.arrowrush.core.model.Position
 import com.navloka.arrowrush.ui.theme.LocalGameColors
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-/**
- * Renders the logical board without turning every cell into a button. The board origin is the
- * top-left corner, so row/column coordinates map directly to the cells the player sees and taps.
- */
+/** Renders each logical arrow as one tappable straight or bent path. */
 @Composable
 fun ArrowBoardView(
     rows: Int,
@@ -82,12 +79,10 @@ fun ArrowBoardView(
     BoxWithConstraints(
         modifier = modifier
             .aspectRatio(cols.toFloat() / rows.toFloat())
-            .clip(RoundedCornerShape(32.dp))
+            .clip(RoundedCornerShape(28.dp))
             .background(colors.boardBackground)
-            .border(1.dp, colors.gridLine.copy(alpha = 0.55f), RoundedCornerShape(32.dp))
-            .padding(14.dp),
-        // Center alignment shifted every logical item by one cell on a 3x3 board and put
-        // Level 1's leading arrow outside the playable area.
+            .border(1.dp, colors.gridLine.copy(alpha = 0.5f), RoundedCornerShape(28.dp))
+            .padding(12.dp),
         contentAlignment = Alignment.TopStart
     ) {
         val boardWidthPx = constraints.maxWidth.toFloat()
@@ -99,8 +94,6 @@ fun ArrowBoardView(
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(activeArrows, flyingArrowIds, rows, cols) {
-                    // Restarting this pointer handler when fly-off begins cancels any queued
-                    // gesture. Moving arrow visuals never own touch regions.
                     if (flyingArrowIds.isEmpty()) {
                         detectTapGestures { tapPosition ->
                             findArrowAtBoardPosition(
@@ -115,12 +108,11 @@ fun ArrowBoardView(
                     }
                 }
         ) {
-            // Quiet registration dots show spatial relationships without a heavy grid.
             for (row in 0 until rows) {
                 for (col in 0 until cols) {
                     drawCircle(
-                        color = colors.gridLine.copy(alpha = 0.42f),
-                        radius = (size.minDimension / maxOf(rows, cols)) * 0.025f,
+                        color = colors.gridLine.copy(alpha = 0.28f),
+                        radius = (size.minDimension / maxOf(rows, cols)) * 0.018f,
                         center = Offset(
                             x = (col + 0.5f) * cellWidthPx,
                             y = (row + 0.5f) * cellHeightPx
@@ -134,14 +126,7 @@ fun ArrowBoardView(
                 val start = arrowCenter(hintArrow, cellWidthPx, cellHeightPx)
                 val end = boardExit(hintArrow.direction, start, size.width, size.height)
                 drawLine(
-                    color = colors.hintGlow.copy(alpha = 0.18f + pulse * 0.12f),
-                    start = start,
-                    end = end,
-                    strokeWidth = 12f,
-                    cap = StrokeCap.Round
-                )
-                drawLine(
-                    color = colors.hintGlow.copy(alpha = 0.72f),
+                    color = colors.hintGlow.copy(alpha = 0.58f),
                     start = start,
                     end = end,
                     strokeWidth = 3f,
@@ -149,23 +134,10 @@ fun ArrowBoardView(
                     cap = StrokeCap.Round
                 )
             }
-
-            val blocked = blockedArrowId?.let(activeArrows::get)
-            val blocker = blockerArrowId?.let(activeArrows::get)
-            if (blocked != null && blocker != null) {
-                drawLine(
-                    color = colors.blockerHighlight.copy(alpha = 0.6f),
-                    start = arrowCenter(blocked, cellWidthPx, cellHeightPx),
-                    end = arrowCenter(blocker, cellWidthPx, cellHeightPx),
-                    strokeWidth = 4f,
-                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f)),
-                    cap = StrokeCap.Round
-                )
-            }
         }
 
         activeArrows.values.sortedBy { it.id }.forEach { arrow ->
-            ArrowCellItem(
+            ArrowPathItem(
                 arrow = arrow,
                 cellWidthPx = cellWidthPx,
                 cellHeightPx = cellHeightPx,
@@ -198,9 +170,11 @@ internal fun findArrowAtBoardPosition(
         return null
     }
 
-    val row = (position.y / (boardHeight / rows)).toInt()
-    val col = (position.x / (boardWidth / cols)).toInt()
-    return activeArrows.values.firstOrNull { it.row == row && it.col == col }?.id
+    val cell = Position(
+        row = (position.y / (boardHeight / rows)).toInt(),
+        col = (position.x / (boardWidth / cols)).toInt()
+    )
+    return activeArrows.values.firstOrNull { cell in it.occupiedPositions }?.id
 }
 
 internal fun boardCellOffset(
@@ -226,7 +200,7 @@ private fun boardExit(
 }
 
 @Composable
-private fun ArrowCellItem(
+private fun ArrowPathItem(
     arrow: Arrow,
     cellWidthPx: Float,
     cellHeightPx: Float,
@@ -241,8 +215,14 @@ private fun ArrowCellItem(
 ) {
     val colors = LocalGameColors.current
     val density = LocalDensity.current
-    val width = with(density) { cellWidthPx.toDp() }
-    val height = with(density) { cellHeightPx.toDp() }
+    val minRow = arrow.path.minOf { it.row }
+    val maxRow = arrow.path.maxOf { it.row }
+    val minCol = arrow.path.minOf { it.col }
+    val maxCol = arrow.path.maxOf { it.col }
+    val widthPx = (maxCol - minCol + 1) * cellWidthPx
+    val heightPx = (maxRow - minRow + 1) * cellHeightPx
+    val width = with(density) { widthPx.toDp() }
+    val height = with(density) { heightPx.toDp() }
     val flyOffset = remember(arrow.id) { Animatable(0f) }
     val flyAlpha = remember(arrow.id) { Animatable(1f) }
     val shake = remember(arrow.id) { Animatable(0f) }
@@ -252,13 +232,11 @@ private fun ArrowCellItem(
             coroutineScope {
                 launch {
                     flyOffset.animateTo(
-                        targetValue = maxOf(boardWidthPx, boardHeightPx) * 1.18f,
-                        animationSpec = tween(220, easing = LinearEasing)
+                        targetValue = maxOf(boardWidthPx, boardHeightPx) * 1.2f,
+                        animationSpec = tween(260, easing = LinearEasing)
                     )
                 }
-                launch {
-                    flyAlpha.animateTo(0f, animationSpec = tween(220, easing = LinearEasing))
-                }
+                launch { flyAlpha.animateTo(0f, tween(260, easing = LinearEasing)) }
             }
         } else {
             flyOffset.snapTo(0f)
@@ -268,29 +246,19 @@ private fun ArrowCellItem(
 
     LaunchedEffect(isBlocked) {
         if (isBlocked) {
-            shake.animateTo(12f, tween(45))
-            shake.animateTo(-10f, tween(45))
-            shake.animateTo(7f, tween(45))
+            shake.animateTo(10f, tween(45))
+            shake.animateTo(-8f, tween(45))
+            shake.animateTo(5f, tween(45))
             shake.animateTo(0f, tween(45))
         }
     }
 
-    val flyX = when (arrow.direction) {
-        Direction.RIGHT -> flyOffset.value
-        Direction.LEFT -> -flyOffset.value
-        else -> 0f
-    }
-    val flyY = when (arrow.direction) {
-        Direction.DOWN -> flyOffset.value
-        Direction.UP -> -flyOffset.value
-        else -> 0f
-    }
-    val shakeX = if (arrow.direction == Direction.LEFT || arrow.direction == Direction.RIGHT) shake.value else 0f
-    val shakeY = if (arrow.direction == Direction.UP || arrow.direction == Direction.DOWN) shake.value else 0f
-
+    val directionX = arrow.direction.dCol.toFloat()
+    val directionY = arrow.direction.dRow.toFloat()
+    val origin = boardCellOffset(minRow, minCol, cellWidthPx, cellHeightPx)
     val ink = when {
         isBlocked -> colors.blockerHighlight
-        isBlocker -> colors.blockerHighlight.copy(alpha = 0.75f)
+        isBlocker -> colors.blockerHighlight.copy(alpha = 0.78f)
         isHinted -> colors.hintGlow
         else -> colors.textPrimary
     }
@@ -298,69 +266,78 @@ private fun ArrowCellItem(
     Box(
         modifier = Modifier
             .offset {
-                val origin = boardCellOffset(
-                    row = arrow.row,
-                    col = arrow.col,
-                    cellWidth = cellWidthPx,
-                    cellHeight = cellHeightPx
-                )
                 IntOffset(
-                    x = origin.x + (flyX + shakeX).roundToInt(),
-                    y = origin.y + (flyY + shakeY).roundToInt()
+                    x = origin.x + (directionX * (flyOffset.value + shake.value)).roundToInt(),
+                    y = origin.y + (directionY * (flyOffset.value + shake.value)).roundToInt()
                 )
             }
-            .size(width = width, height = height)
-            .padding(width * 0.08f)
+            .size(width, height)
             .alpha(flyAlpha.value)
-            .scale(if (isHinted) 1f + pulse * 0.08f else 1f)
-            .clip(CircleShape)
+            .scale(if (isHinted) 1f + pulse * 0.035f else 1f)
             .semantics {
-                contentDescription = "Arrow pointing ${arrow.direction.label}"
+                contentDescription = "Arrow path pointing ${arrow.direction.label}"
                 onClick {
                     if (!isFlying) onActivate()
                     !isFlying
                 }
             }
-            .testTag("arrow_${arrow.id}"),
-        contentAlignment = Alignment.Center
+            .testTag("arrow_${arrow.id}")
     ) {
-        if (isHinted || isBlocked || isBlocker) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(width * 0.08f)
-                    .background(
-                        color = ink.copy(alpha = if (isHinted) 0.12f + pulse * 0.06f else 0.1f),
-                        shape = CircleShape
-                    )
-            )
-        }
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val cellSize = minOf(cellWidthPx, cellHeightPx)
+            val stroke = (cellSize * 0.16f).coerceAtLeast(4f)
+            val points = arrow.path.map { cell ->
+                Offset(
+                    x = (cell.col - minCol + 0.5f) * cellWidthPx,
+                    y = (cell.row - minRow + 0.5f) * cellHeightPx
+                )
+            }
 
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(width * 0.16f)
-                .rotate(arrow.direction.angleDegrees)
-        ) {
-            val stroke = (size.minDimension * 0.09f).coerceAtLeast(4f)
-            val tail = Offset(size.width * 0.18f, size.height * 0.5f)
-            val tip = Offset(size.width * 0.82f, size.height * 0.5f)
-            val headX = size.width * 0.57f
-            drawLine(ink, tail, tip, strokeWidth = stroke, cap = StrokeCap.Round)
-            drawLine(
-                ink,
-                Offset(headX, size.height * 0.27f),
-                tip,
-                strokeWidth = stroke,
-                cap = StrokeCap.Round
+            if (isHinted || isBlocked || isBlocker) {
+                points.zipWithNext().forEach { (start, end) ->
+                    drawLine(
+                        color = ink.copy(alpha = if (isHinted) 0.18f + pulse * 0.08f else 0.16f),
+                        start = start,
+                        end = end,
+                        strokeWidth = stroke * 2.1f,
+                        cap = StrokeCap.Round
+                    )
+                }
+            }
+
+            points.zipWithNext().forEach { (start, end) ->
+                drawLine(ink, start, end, strokeWidth = stroke, cap = StrokeCap.Round)
+            }
+
+            val head = points.last()
+            val shaftStart = if (points.size == 1) {
+                Offset(
+                    head.x - directionX * cellSize * 0.38f,
+                    head.y - directionY * cellSize * 0.38f
+                )
+            } else {
+                points[points.lastIndex - 1]
+            }
+            val tip = Offset(
+                head.x + directionX * cellSize * 0.32f,
+                head.y + directionY * cellSize * 0.32f
             )
-            drawLine(
-                ink,
-                Offset(headX, size.height * 0.73f),
-                tip,
-                strokeWidth = stroke,
-                cap = StrokeCap.Round
+            drawLine(ink, shaftStart, tip, strokeWidth = stroke, cap = StrokeCap.Round)
+
+            val base = Offset(
+                head.x - directionX * cellSize * 0.02f,
+                head.y - directionY * cellSize * 0.02f
             )
+            val perpendicularX = -directionY
+            val perpendicularY = directionX
+            val wing = cellSize * 0.23f
+            val arrowHead = Path().apply {
+                moveTo(tip.x, tip.y)
+                lineTo(base.x + perpendicularX * wing, base.y + perpendicularY * wing)
+                lineTo(base.x - perpendicularX * wing, base.y - perpendicularY * wing)
+                close()
+            }
+            drawPath(arrowHead, ink)
         }
     }
 }

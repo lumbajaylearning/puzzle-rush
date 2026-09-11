@@ -84,7 +84,7 @@ fun GameHeader(
                     maxLines = 1
                 )
                 Text(
-                    text = "${gameState.board.size} arrows  •  ${gameState.movesCount} moves",
+                    text = "${gameState.board.size} paths  •  ${gameState.movesCount} moves",
                     color = colors.textSecondary,
                     fontSize = 11.sp
                 )

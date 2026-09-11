@@ -1,59 +1,29 @@
 package com.navloka.arrowrush.data
 
+import com.navloka.arrowrush.core.engine.CollisionRules
 import com.navloka.arrowrush.core.model.Arrow
+import com.navloka.arrowrush.core.model.Board
 import com.navloka.arrowrush.core.model.Difficulty
 import com.navloka.arrowrush.core.model.Direction
 import com.navloka.arrowrush.core.model.Position
 import com.navloka.arrowrush.core.model.PuzzleLevel
-import kotlin.math.abs
-import kotlin.math.min
 import kotlin.random.Random
 
-/**
- * The campaign starts with one hand-authored teaching board, then builds increasingly dense
- * dependency mazes. Every generated direction is chosen while removing arrows from a temporary
- * board, so replaying those removals in id order is always a valid solution.
- *
- * Keeping this deterministic gives every player the same handcrafted-feeling campaign and lets
- * the validator protect the whole catalog in unit tests.
- */
+/** Deterministic campaign made from fewer, longer, interlocking arrow paths. */
 object LevelCatalog {
 
     private val titles = listOf(
-        "First Flight",
-        "Outward Bound",
-        "Crossroad Peek",
-        "The Pinwheel",
-        "Corner Lock",
-        "Traffic Knot",
-        "Outer Peeling",
-        "The Zipper",
-        "Crossroads",
-        "Diamond Core",
-        "Boxed In",
-        "Spiral Step",
-        "Twin Corridors",
-        "The Ring",
-        "Vortex",
-        "Interlocking Teeth",
-        "The Cascade",
-        "Symmetry Trap",
-        "Hourglass Matrix",
-        "Crossroads Central",
-        "The Labyrinth",
-        "Twin Spirals",
-        "Checker Rush",
-        "Whirlpool",
-        "Fortress Walls",
-        "The Hive",
-        "Constellation",
-        "Cascade Wave",
-        "Grand Matrix",
+        "First Flight", "Outward Bound", "Crossroad Peek", "The Pinwheel", "Corner Lock",
+        "Traffic Knot", "Outer Peeling", "The Zipper", "Crossroads", "Diamond Core",
+        "Boxed In", "Spiral Step", "Twin Corridors", "The Ring", "Vortex",
+        "Interlocking Teeth", "The Cascade", "Symmetry Trap", "Hourglass Matrix",
+        "Crossroads Central", "The Labyrinth", "Twin Spirals", "Checker Rush", "Whirlpool",
+        "Fortress Walls", "The Hive", "Constellation", "Cascade Wave", "Grand Matrix",
         "Master of Arrows"
     )
 
     val levels: List<PuzzleLevel> by lazy {
-        listOf(firstFlight()) + (2..30).map(::buildDenseLevel)
+        listOf(firstFlight()) + (2..30).map(::generatePathLevel)
     }
 
     fun getLevel(levelNumber: Int): PuzzleLevel =
@@ -62,92 +32,164 @@ object LevelCatalog {
     private fun firstFlight() = PuzzleLevel(
         levelNumber = 1,
         title = titles.first(),
-        rows = 3,
-        cols = 3,
+        rows = 7,
+        cols = 5,
         arrows = listOf(
-            Arrow(1, 1, 2, Direction.RIGHT, 0),
-            Arrow(2, 1, 1, Direction.RIGHT, 1),
-            Arrow(3, 1, 0, Direction.RIGHT, 2)
+            Arrow(1, listOf(Position(1, 2), Position(0, 2)), Direction.UP, 0),
+            Arrow(2, listOf(Position(3, 2), Position(2, 2)), Direction.UP, 1),
+            Arrow(3, listOf(Position(5, 2), Position(4, 2)), Direction.UP, 2)
         ),
         difficulty = Difficulty.EASY
     )
 
-    private fun buildDenseLevel(levelNumber: Int): PuzzleLevel {
+    private fun generatePathLevel(levelNumber: Int): PuzzleLevel {
         val size = boardSize(levelNumber)
-        val arrowCount = arrowCount(levelNumber)
-        val random = Random(levelNumber * 7_919 + 41)
-        val positions = selectPositions(
-            rows = size,
-            cols = size,
-            count = arrowCount,
-            pattern = levelNumber % 5,
-            random = random
-        )
+        val targetCount = pieceCount(levelNumber)
+        val maxLength = maxPathLength(levelNumber)
 
-        val remaining = positions.toMutableSet()
-        val removed = mutableSetOf<Position>()
-        val arrows = mutableListOf<Arrow>()
+        repeat(MAX_LEVEL_ATTEMPTS) { levelAttempt ->
+            val random = Random(levelNumber * 104_729 + levelAttempt * 7_919)
+            val arrows = mutableListOf<Arrow>()
+            val occupied = mutableSetOf<Position>()
 
-        while (remaining.isNotEmpty()) {
-            val candidates = remaining.flatMap { position ->
-                Direction.entries.mapNotNull { direction ->
-                    val ray = rayFrom(position, direction, size, size)
-                    if (ray.any { it in remaining }) {
-                        null
-                    } else {
-                        Candidate(
-                            position = position,
-                            direction = direction,
-                            // Prefer paths opened by earlier removals. This creates long chains
-                            // instead of a board where every edge arrow is immediately free.
-                            dependencyScore = ray.count { it in removed } * 100 + ray.size
-                        )
-                    }
-                }
+            for (id in 1..targetCount) {
+                val arrow = findPathCandidate(
+                    id = id,
+                    levelNumber = levelNumber,
+                    rows = size,
+                    cols = size,
+                    maxLength = maxLength,
+                    existing = arrows,
+                    occupied = occupied,
+                    random = random
+                ) ?: break
+
+                arrows += arrow
+                occupied += arrow.path
             }
 
-            // A finite board always has at least one outward-facing candidate.
-            val bestScore = candidates.maxOf { it.dependencyScore }
-            val strongest = candidates.filter { it.dependencyScore >= bestScore - 1 }
-            val chosen = strongest[random.nextInt(strongest.size)]
-            val id = arrows.size + 1
-            arrows += Arrow(
-                id = id,
-                row = chosen.position.row,
-                col = chosen.position.col,
-                direction = chosen.direction,
-                colorIndex = (id + levelNumber) % 4
-            )
-            remaining.remove(chosen.position)
-            removed += chosen.position
+            if (arrows.size == targetCount && followsAuthoredOrder(arrows, size, size)) {
+                return PuzzleLevel(
+                    levelNumber = levelNumber,
+                    title = titles[levelNumber - 1],
+                    rows = size,
+                    cols = size,
+                    arrows = arrows,
+                    difficulty = difficultyFor(levelNumber)
+                )
+            }
         }
 
-        return PuzzleLevel(
-            levelNumber = levelNumber,
-            title = titles[levelNumber - 1],
-            rows = size,
-            cols = size,
-            arrows = arrows,
-            difficulty = difficultyFor(levelNumber)
-        )
+        error("Unable to generate deterministic path puzzle for level $levelNumber")
+    }
+
+    private fun findPathCandidate(
+        id: Int,
+        levelNumber: Int,
+        rows: Int,
+        cols: Int,
+        maxLength: Int,
+        existing: List<Arrow>,
+        occupied: Set<Position>,
+        random: Random
+    ): Arrow? {
+        repeat(MAX_CANDIDATE_ATTEMPTS) {
+            val direction = Direction.entries.random(random)
+            val head = if (existing.isEmpty()) {
+                Position(random.nextInt(rows), random.nextInt(cols))
+            } else {
+                // Put the new head behind an older path so it begins blocked and becomes
+                // available only after an earlier dependency has escaped.
+                val blockerCell = occupied.random(random)
+                val distance = random.nextInt(1, minOf(rows, cols))
+                Position(
+                    blockerCell.row - direction.dRow * distance,
+                    blockerCell.col - direction.dCol * distance
+                )
+            }
+
+            val previous = Position(
+                head.row - direction.dRow,
+                head.col - direction.dCol
+            )
+            if (!inside(head, rows, cols) || !inside(previous, rows, cols)) return@repeat
+            if (head in occupied || previous in occupied) return@repeat
+
+            val desiredLength = random.nextInt(2, maxLength + 1)
+            val headToTail = mutableListOf(head, previous)
+            while (headToTail.size < desiredLength) {
+                val current = headToTail.last()
+                val candidates = Direction.entries
+                    .map { current + it }
+                    .filter { cell ->
+                        inside(cell, rows, cols) && cell !in occupied && cell !in headToTail
+                    }
+                if (candidates.isEmpty()) break
+
+                // A turn makes the piece visually read as a path rather than a long tap target.
+                val straightBack = Position(
+                    current.row - direction.dRow,
+                    current.col - direction.dCol
+                )
+                val turning = candidates.filter { it != straightBack }
+                headToTail += (turning.ifEmpty { candidates }).random(random)
+            }
+
+            val path = headToTail.asReversed()
+            val candidate = Arrow(
+                id = id,
+                path = path,
+                direction = direction,
+                colorIndex = (id + levelNumber) % 4
+            )
+            val tentative = existing + candidate
+            val board = Board(rows, cols, tentative.associateBy { it.id })
+            val beginsBlocked = id == 1 || CollisionRules.findBlockingArrow(candidate, board) != null
+
+            if (beginsBlocked && followsAuthoredOrder(tentative, rows, cols)) {
+                return candidate
+            }
+        }
+        return null
+    }
+
+    /** IDs are the intended dependency order; each accepted addition must preserve it. */
+    private fun followsAuthoredOrder(arrows: List<Arrow>, rows: Int, cols: Int): Boolean {
+        var board = Board(rows, cols, arrows.associateBy { it.id })
+        for (arrow in arrows.sortedBy { it.id }) {
+            val current = board.getArrow(arrow.id) ?: return false
+            if (!CollisionRules.canEscape(current, board)) return false
+            board = board.withArrowRemoved(arrow.id)
+        }
+        return board.isEmpty
     }
 
     private fun boardSize(levelNumber: Int): Int = when (levelNumber) {
-        in 1..3 -> 3
-        in 4..8 -> 4
-        in 9..16 -> 5
-        in 17..24 -> 6
-        else -> 7
+        in 1..5 -> 6
+        in 6..11 -> 7
+        in 12..18 -> 8
+        in 19..24 -> 9
+        else -> 10
     }
 
-    private fun arrowCount(levelNumber: Int): Int = when (levelNumber) {
-        1 -> 3
-        2 -> 7
-        3 -> 9
-        in 4..8 -> levelNumber + 7 // 11 ... 15 of 16 cells
-        in 9..16 -> levelNumber + 8 // 17 ... 24 of 25 cells
-        in 17..24 -> levelNumber + 8 // 25 ... 32 of 36 cells
-        else -> 34 + (levelNumber - 25) * 2 // 34 ... 44 of 49 cells
+    private fun pieceCount(levelNumber: Int): Int = when (levelNumber) {
+        in 1..3 -> 5
+        in 4..6 -> 6
+        in 7..9 -> 7
+        in 10..12 -> 8
+        in 13..15 -> 9
+        in 16..18 -> 10
+        in 19..21 -> 11
+        in 22..24 -> 12
+        in 25..27 -> 13
+        else -> 14
+    }
+
+    private fun maxPathLength(levelNumber: Int): Int = when (levelNumber) {
+        in 1..6 -> 3
+        in 7..15 -> 4
+        in 16..24 -> 5
+        else -> 6
     }
 
     private fun difficultyFor(levelNumber: Int): Difficulty = when (levelNumber) {
@@ -157,67 +199,9 @@ object LevelCatalog {
         else -> Difficulty.EXPERT
     }
 
-    private fun selectPositions(
-        rows: Int,
-        cols: Int,
-        count: Int,
-        pattern: Int,
-        random: Random
-    ): Set<Position> {
-        val all = (0 until rows).flatMap { row ->
-            (0 until cols).map { col -> Position(row, col) }
-        }
-        val centerRow = (rows - 1) / 2f
-        val centerCol = (cols - 1) / 2f
+    private fun inside(position: Position, rows: Int, cols: Int): Boolean =
+        position.row in 0 until rows && position.col in 0 until cols
 
-        return all
-            .map { position ->
-                val rowDistance = abs(position.row - centerRow)
-                val colDistance = abs(position.col - centerCol)
-                val shapeScore = when (pattern) {
-                    0 -> rowDistance + colDistance // diamond
-                    1 -> min(rowDistance, colDistance) // cross and corridors
-                    2 -> min(
-                        abs(position.row - position.col).toFloat(),
-                        abs(position.row + position.col - (cols - 1)).toFloat()
-                    ) // twin diagonals
-                    3 -> minOf(
-                        position.row,
-                        position.col,
-                        rows - 1 - position.row,
-                        cols - 1 - position.col
-                    ).toFloat() // outer ring
-                    else -> abs(rowDistance - colDistance) // hourglass corners
-                }
-                RankedPosition(position, shapeScore, random.nextInt(10_000))
-            }
-            .sortedWith(compareBy<RankedPosition> { it.shapeScore }.thenBy { it.tieBreaker })
-            .take(count)
-            .mapTo(linkedSetOf()) { it.position }
-    }
-
-    private fun rayFrom(
-        start: Position,
-        direction: Direction,
-        rows: Int,
-        cols: Int
-    ): List<Position> = buildList {
-        var position = start + direction
-        while (position.row in 0 until rows && position.col in 0 until cols) {
-            add(position)
-            position += direction
-        }
-    }
-
-    private data class Candidate(
-        val position: Position,
-        val direction: Direction,
-        val dependencyScore: Int
-    )
-
-    private data class RankedPosition(
-        val position: Position,
-        val shapeScore: Float,
-        val tieBreaker: Int
-    )
+    private const val MAX_LEVEL_ATTEMPTS = 80
+    private const val MAX_CANDIDATE_ATTEMPTS = 2_000
 }

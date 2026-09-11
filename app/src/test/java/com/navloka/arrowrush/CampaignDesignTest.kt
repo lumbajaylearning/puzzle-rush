@@ -10,12 +10,15 @@ import org.junit.Test
 class CampaignDesignTest {
 
     @Test
-    fun `campaign becomes denser while every intended dependency order stays valid`() {
+    fun `campaign uses fewer multi-cell paths while every dependency order stays valid`() {
         val puzzleLevels = LevelCatalog.levels.drop(1)
 
         puzzleLevels.forEach { level ->
-            val density = level.arrows.size.toFloat() / (level.rows * level.cols)
-            assertTrue("Level ${level.levelNumber} should feel visually dense", density >= 0.68f)
+            assertTrue("Level ${level.levelNumber} should avoid excessive tapping", level.arrows.size <= 14)
+            assertTrue(
+                "Level ${level.levelNumber} should use path-shaped pieces",
+                level.arrows.all { it.path.size >= 2 }
+            )
             assertEquals(
                 "Level ${level.levelNumber} must be solvable in its authored dependency order",
                 (1..level.arrows.size).toList(),
@@ -24,8 +27,8 @@ class CampaignDesignTest {
         }
 
         assertTrue(
-            "Late campaign boards should contain more arrows than early boards",
-            LevelCatalog.getLevel(30).arrows.size > LevelCatalog.getLevel(5).arrows.size * 3
+            "Late campaign boards should add decisions without returning to tap-heavy levels",
+            LevelCatalog.getLevel(30).arrows.size > LevelCatalog.getLevel(5).arrows.size
         )
     }
 
