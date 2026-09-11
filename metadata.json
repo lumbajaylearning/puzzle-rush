@@ -1,6 +1,6 @@
 {
-  "name": "Puzzle Rush",
-  "description": "Arrow puzzle game featuring 30 handcrafted levels of directional untangling, fast-paced rush mode, and smooth animations.",
+  "name": "Arrow Rush",
+  "description": "Arrow Rush is an engaging directional-arrow untangling puzzle game featuring 30 handcrafted levels, pure puzzle engine mechanics, and responsive feedback.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

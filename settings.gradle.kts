@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Puzzle Rush"
+rootProject.name = "Arrow Rush"
 include(":app")

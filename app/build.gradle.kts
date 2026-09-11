@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.puzzlerush"
+    namespace = "com.navloka.arrowrush"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.aistudio.puzzlerush.qkrvmz"
+        applicationId = "com.navloka.arrowrush"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
