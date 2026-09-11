@@ -40,6 +40,7 @@ import com.navloka.arrowrush.ui.components.ArrowBoardView
 import com.navloka.arrowrush.ui.components.ControlBar
 import com.navloka.arrowrush.ui.components.GameHeader
 import com.navloka.arrowrush.ui.components.HowToPlayDialog
+import com.navloka.arrowrush.ui.components.LevelFailedDialog
 import com.navloka.arrowrush.ui.components.RushGameOverDialog
 import com.navloka.arrowrush.ui.components.VictoryDialog
 import com.navloka.arrowrush.ui.theme.LocalGameColors
@@ -145,6 +146,13 @@ fun GameScreen(
                 gameState = gameState,
                 onNextLevel = { viewModel.nextLevel() },
                 onReplay = { viewModel.restartCurrentLevel() },
+                onLevelSelect = { viewModel.navigateTo(Screen.LEVEL_SELECT) }
+            )
+        }
+
+        if (gameState.isLevelFailed && gameState.mode == GameMode.CAMPAIGN) {
+            LevelFailedDialog(
+                onRetry = { viewModel.restartCurrentLevel() },
                 onLevelSelect = { viewModel.navigateTo(Screen.LEVEL_SELECT) }
             )
         }

@@ -3,6 +3,8 @@ package com.navloka.arrowrush.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -10,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -24,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.navloka.arrowrush.model.GameMode
 import com.navloka.arrowrush.model.GameState
+import com.navloka.arrowrush.core.scoring.FocusRules
 import com.navloka.arrowrush.ui.theme.LocalGameColors
 
 @Composable
@@ -84,6 +88,28 @@ fun GameHeader(
                     color = colors.textSecondary,
                     fontSize = 11.sp
                 )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    repeat(FocusRules.MAX_FOCUS) { index ->
+                        Icon(
+                            imageVector = Icons.Filled.Favorite,
+                            contentDescription = null,
+                            tint = if (index < gameState.focusRemaining) {
+                                colors.blockerHighlight
+                            } else {
+                                colors.gridLine.copy(alpha = 0.65f)
+                            },
+                            modifier = Modifier.size(13.dp)
+                        )
+                    }
+                    Text(
+                        text = " focus",
+                        color = colors.textSecondary,
+                        fontSize = 10.sp
+                    )
+                }
             } else {
                 Text(
                     text = "RUSH  •  ${gameState.rushTimeRemainingSeconds}s",

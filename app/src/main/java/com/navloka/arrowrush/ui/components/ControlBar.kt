@@ -41,7 +41,10 @@ fun ControlBar(
     modifier: Modifier = Modifier
 ) {
     val colors = LocalGameColors.current
-    val canUndo = gameState.canUndo && gameState.mode == GameMode.CAMPAIGN && !gameState.isCleared
+    val canUndo = gameState.canUndo &&
+        gameState.mode == GameMode.CAMPAIGN &&
+        !gameState.isCleared &&
+        !gameState.isLevelFailed
 
     Row(
         modifier = modifier
@@ -61,7 +64,7 @@ fun ControlBar(
         ControlButton(
             icon = Icons.Filled.Lightbulb,
             label = "Hint",
-            enabled = !gameState.isCleared && !gameState.isRushGameOver,
+            enabled = !gameState.isCleared && !gameState.isLevelFailed && !gameState.isRushGameOver,
             onClick = onHintClick,
             testTag = "btn_hint"
         )

@@ -3,6 +3,7 @@ package com.navloka.arrowrush.model
 import com.navloka.arrowrush.core.model.Arrow
 import com.navloka.arrowrush.core.model.Board
 import com.navloka.arrowrush.core.model.PuzzleLevel
+import com.navloka.arrowrush.core.scoring.FocusRules
 
 /**
  * UI presentation state representing the game screen.
@@ -19,8 +20,10 @@ data class GameState(
     val hintArrowId: Int? = null,
     val movesCount: Int = 0,
     val mistakesCount: Int = 0,
+    val focusRemaining: Int = FocusRules.MAX_FOCUS,
     val combo: Int = 0,
     val isCleared: Boolean = false,
+    val isLevelFailed: Boolean = false,
     val starsEarned: Int = 0,
     val canUndo: Boolean = false,
     val feedbackMessage: String? = null,

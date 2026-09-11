@@ -10,6 +10,7 @@ import com.navloka.arrowrush.core.engine.MoveResult
 import com.navloka.arrowrush.core.engine.PuzzleEngine
 import com.navloka.arrowrush.core.model.Arrow
 import com.navloka.arrowrush.core.scoring.ScoreCalculator
+import com.navloka.arrowrush.core.scoring.FocusRules
 import com.navloka.arrowrush.data.GamePreferences
 import com.navloka.arrowrush.data.LevelCatalog
 import com.navloka.arrowrush.model.GameMode
@@ -121,8 +122,10 @@ class PuzzleGameViewModel @JvmOverloads constructor(
             hintArrowId = null,
             movesCount = 0,
             mistakesCount = 0,
+            focusRemaining = FocusRules.MAX_FOCUS,
             combo = 0,
             isCleared = false,
+            isLevelFailed = false,
             starsEarned = 0,
             canUndo = false,
             feedbackMessage = initialFeedback
@@ -205,11 +208,11 @@ class PuzzleGameViewModel @JvmOverloads constructor(
 
     fun onArrowClicked(arrowId: Int) {
         val state = _gameState.value
-        if (state.isCleared || state.isRushGameOver) return
+        if (state.isCleared || state.isLevelFailed || state.isRushGameOver) return
         // The engine removes a successful arrow immediately while the UI keeps it for the
         // 220 ms fly-off animation. Lock the board during that tiny window so a second tap
         // cannot be evaluated against an engine state the player has not seen yet.
-        if (state.flyingArrowIds.isNotEmpty()) return
+        if (state.flyingArrowIds.isNotEmpty() || state.blockedArrowId != null) return
 
         engine.move(arrowId)
     }
@@ -220,22 +223,39 @@ class PuzzleGameViewModel @JvmOverloads constructor(
 
         blockerClearJob?.cancel()
         val dirLabel = arrow.direction.label.uppercase()
+        var levelFailed = false
         _gameState.update {
+            val remainingFocus = if (it.mode == GameMode.CAMPAIGN) {
+                FocusRules.afterBlockedMove(it.focusRemaining)
+            } else {
+                it.focusRemaining
+            }
+            levelFailed = it.mode == GameMode.CAMPAIGN && FocusRules.isDepleted(remainingFocus)
+            val feedback = when {
+                levelFailed -> "🚫 BLOCKED: No focus left — study the paths and try again."
+                it.mode == GameMode.CAMPAIGN -> "🚫 BLOCKED $dirLabel path • $remainingFocus focus left"
+                else -> "🚫 BLOCKED: Moving $dirLabel is blocked by the highlighted arrow!"
+            }
             it.copy(
                 blockedArrowId = arrow.id,
                 blockerArrowId = blockingArrow.id,
                 mistakesCount = it.mistakesCount + 1,
+                focusRemaining = remainingFocus,
                 combo = 0,
-                feedbackMessage = "🚫 BLOCKED: Moving $dirLabel is blocked by the highlighted arrow!"
+                isLevelFailed = levelFailed,
+                feedbackMessage = feedback
             )
         }
 
-        blockerClearJob = viewModelScope.launch {
-            delay(2500)
-            _gameState.update {
-                if (it.blockedArrowId == arrow.id) {
-                    it.copy(blockedArrowId = null, blockerArrowId = null, feedbackMessage = null)
-                } else it
+        if (!levelFailed) {
+            blockerClearJob = viewModelScope.launch {
+                // This short lock also prevents a rapid double tap from spending two focus points.
+                delay(700)
+                _gameState.update {
+                    if (it.blockedArrowId == arrow.id) {
+                        it.copy(blockedArrowId = null, blockerArrowId = null, feedbackMessage = null)
+                    } else it
+                }
             }
         }
     }
@@ -345,7 +365,7 @@ class PuzzleGameViewModel @JvmOverloads constructor(
 
     fun undoLastMove() {
         val state = _gameState.value
-        if (!state.canUndo || state.isCleared || state.mode == GameMode.RUSH) return
+        if (!state.canUndo || state.isCleared || state.isLevelFailed || state.mode == GameMode.RUSH) return
 
         sound.playTap()
         haptics.vibrateClick()
@@ -370,7 +390,7 @@ class PuzzleGameViewModel @JvmOverloads constructor(
 
     fun requestHint() {
         val state = _gameState.value
-        if (state.isCleared || state.board.isEmpty) return
+        if (state.isCleared || state.isLevelFailed || state.board.isEmpty) return
 
         sound.playTap()
         haptics.vibrateClick()
@@ -438,8 +458,10 @@ class PuzzleGameViewModel @JvmOverloads constructor(
                     hintArrowId = null,
                     movesCount = 0,
                     mistakesCount = 0,
+                    focusRemaining = FocusRules.MAX_FOCUS,
                     combo = 0,
                     isCleared = false,
+                    isLevelFailed = false,
                     starsEarned = 0,
                     canUndo = false,
                     feedbackMessage = resetFeedback

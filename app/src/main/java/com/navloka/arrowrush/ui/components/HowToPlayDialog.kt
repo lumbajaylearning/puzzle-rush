@@ -137,7 +137,7 @@ fun HowToPlayDialog(onDismiss: () -> Unit) {
                 // Rule 2: Blocked by Arrows Ahead
                 DiagramRuleCard(
                     title = "2. Blocked Path = COLLISION!",
-                    description = "If another arrow sits directly in the path, it CANNOT escape. You must first launch the blocking arrow in front!",
+                    description = "If another arrow sits directly in its path, the move is blocked and costs one focus heart. Three blocked taps end the run, so trace the full lane first!",
                     statusColor = Color(0xFFEF4444)
                 ) {
                     // Mini visual demonstration
@@ -162,7 +162,7 @@ fun HowToPlayDialog(onDismiss: () -> Unit) {
                         MiniArrow(direction = 0f, color = Color(0xFFFB7185))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "BLOCKED!",
+                            text = "BLOCKED!  −1 ♥",
                             color = Color(0xFFEF4444),
                             fontWeight = FontWeight.Bold,
                             fontSize = 11.sp
@@ -175,7 +175,7 @@ fun HowToPlayDialog(onDismiss: () -> Unit) {
                 // Rule 3: Strategy & Tools
                 DiagramRuleCard(
                     title = "3. Strategy & Game Tools",
-                    description = "Look for outer arrows near the board border pointing outward first! Untangle the grid from outside to inside.",
+                    description = "Dense boards hide dependency chains. Find any arrow with a clear lane to an edge, then use the gap it creates to unlock the next path.",
                     statusColor = Color(0xFFFBBF24)
                 ) {
                     Row(
